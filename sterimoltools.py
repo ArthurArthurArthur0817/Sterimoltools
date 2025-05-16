@@ -440,7 +440,7 @@ class calcSterimol:
                 else: 
                     print("    %.3f".rjust(6) % coord, end=' ')
 		    print("testC")
-             print("    %.1f" % round(vdw_radii[atom]*100))print("testA")
+             print("    %.1f" % round(vdw_radii[atom]*100))print("testB")
 
       adjlist = []
       opplist = []
