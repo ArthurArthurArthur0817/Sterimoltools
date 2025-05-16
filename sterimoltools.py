@@ -427,6 +427,7 @@ class calcSterimol:
       # 排除指定的原子
       for ex in excludes:
           if ex in atomlist:
+	      print(ex)
               atomlist.remove(ex)
 
       if verbose:
