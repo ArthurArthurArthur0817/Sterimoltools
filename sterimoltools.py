@@ -432,15 +432,13 @@ class calcSterimol:
       if verbose:
           for atom in range(natoms):
              if radii == "cpk": print("  ", sterimol_types[atom].ljust(6), end=' ')
-             if radii == "bondi": print("  ", atomtype[atom].ljust(6), end=' ')print("testA")
+             if radii == "bondi": print("  ", atomtype[atom].ljust(6), end=' ');print("testA")
              for coord in molcart[atom]:
                 if coord < 0.0: 
-                    print("   %.3f".rjust(6) % coord, end=' ')
-		    print("testB")
+                    print("   %.3f".rjust(6) % coord, end=' ');print("testB")
                 else: 
-                    print("    %.3f".rjust(6) % coord, end=' ')
-		    print("testC")
-             print("    %.1f" % round(vdw_radii[atom]*100))print("testB")
+                    print("    %.3f".rjust(6) % coord, end=' ');print("testC")
+             print("    %.1f" % round(vdw_radii[atom]*100));print("testB")
 
       adjlist = []
       opplist = []
