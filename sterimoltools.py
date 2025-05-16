@@ -378,61 +378,85 @@ def linearcheck(carts):
    return ans
 
 class calcSterimol:
-   def __init__(self, file, radii, atomA, atomB,verbose):
+   def __init__(self, file, radii, atomA, atomB, verbose, exclude1=None, exclude2=None, exclude3=None):
 
-      if len(file.split(".com"))>1 or len(file.split(".gjf"))>1: fileData = getinData(file.split(".")[0])
-      if len(file.split(".out"))>1 or len(file.split(".log"))>1: fileData = getoutData(file.split(".")[0])
+      if len(file.split(".com"))>1 or len(file.split(".gjf"))>1: 
+          fileData = getinData(file.split(".")[0])
+      if len(file.split(".out"))>1 or len(file.split(".log"))>1: 
+          fileData = getoutData(file.split(".")[0])
 
-      # initialize the array of atomic vdw radii
-      molcart = fileData.CARTESIANS; atomtype = fileData.ATOMTYPES; natoms = len(molcart); vdw_radii = []
+      molcart = fileData.CARTESIANS
+      atomtype = fileData.ATOMTYPES
+      natoms = len(molcart)
+      vdw_radii = []
 
       if radii == "cpk":
          atomic_co_no = ncoord(natoms, rcov, atomtype, molcart)
          sterimol_types = generate_atom_types(atomtype, atomic_co_no)
-         #print sterimol_types
-         for i in range(0,natoms):
-            for j in range(0,len(sterimol_atomtypes)):
-               if sterimol_types[i] == sterimol_atomtypes[j]: vdw_radii.append(cpk_radii[j]/100.00)
+         for i in range(natoms):
+            for j in range(len(sterimol_atomtypes)):
+               if sterimol_types[i] == sterimol_atomtypes[j]: 
+                   vdw_radii.append(cpk_radii[j]/100.00)
 
       if radii == "bondi":
-         for i in range(0,natoms): vdw_radii.append(bondiRadius(periodictable.index(fileData.ATOMTYPES[i])))
+         for i in range(natoms): 
+             vdw_radii.append(bondiRadius(periodictable.index(atomtype[i])))
 
-# Define vector along the L-axis connecting base atom and the next attached atom
-# subtract one since the array starts from zero not one
-      atomA = atomA - 1; atomB = atomB - 1
+      atomA = atomA - 1
+      atomB = atomB - 1
+
+      # 把要排除的atom轉成0-based index，如果沒給參數就設為-1(不排除)
+      excludes = []
+      for ex in [exclude1, exclude2, exclude3]:
+          if ex is not None:
+              excludes.append(ex - 1)
+      # print("Exclude atoms (0-based):", excludes)
+
       next_atom = molcart[atomB]
-      vect1=np.subtract(getcoords(atomA,molcart),next_atom)
-      if verbose == True:
+      vect1 = np.subtract(getcoords(atomA, molcart), next_atom)
+      if verbose:
           print("   Atoms", atomA, "and", atomB, "define the L-axis and direction", vect1)
-
           print("\n", "   Atom ".ljust(9), "  Xco/A".rjust(9), "  Yco/A".rjust(9), "  Zco/A".rjust(9), " VdW/pm".rjust(9))
           print("   ##############################################")
-      # Remove the base atom from the list of atoms to be considered for sterics (after printing all)
-      atomlist = list(range(0,natoms))
-      if verbose == True:
-          for atom in atomlist:
+
+      atomlist = list(range(natoms))
+      # 移除atomA，因為是L軸起點
+      if atomA in atomlist:
+          atomlist.remove(atomA)
+
+      # 排除指定的原子
+      for ex in excludes:
+          if ex in atomlist:
+              atomlist.remove(ex)
+
+      if verbose:
+          for atom in range(natoms):
              if radii == "cpk": print("  ", sterimol_types[atom].ljust(6), end=' ')
              if radii == "bondi": print("  ", atomtype[atom].ljust(6), end=' ')
              for coord in molcart[atom]:
-                if coord < 0.0: print("   %.3f".rjust(6) % coord, end=' ')
-                else: print("    %.3f".rjust(6) % coord, end=' ')
+                if coord < 0.0: 
+                    print("   %.3f".rjust(6) % coord, end=' ')
+                else: 
+                    print("    %.3f".rjust(6) % coord, end=' ')
              print("    %.1f" % round(vdw_radii[atom]*100))
-      atomlist.remove(atomA)
 
-      adjlist=[]; opplist=[]; theta=[]
+      adjlist = []
+      opplist = []
+
       for i in atomlist:
-         vect2=np.subtract(getcoords(atomA,molcart),getcoords(i,molcart))
-         oppdist=calcopposite(atomA,i,angle(vect1,vect2),molcart)
-         opplist.append(oppdist+vdw_radii[i])
-         adjdist=calcadj(atomA,i,angle(vect1,vect2),molcart)
-         #minadjlist.append(adjdist-vdw_radii[i])
-         adjlist.append(adjdist+vdw_radii[i])
+         vect2 = np.subtract(getcoords(atomA, molcart), getcoords(i, molcart))
+         oppdist = calcopposite(atomA, i, angle(vect1, vect2), molcart)
+         opplist.append(oppdist + vdw_radii[i])
+         adjdist = calcadj(atomA, i, angle(vect1, vect2), molcart)
+         adjlist.append(adjdist + vdw_radii[i])
 
-      B5=max(opplist)
-   #self.lval=max(adjlist)-minval
-   # A bit weird, but seems like original sterimol adds on the difference between the bond length and vdw radius of atom B. For a C-H bond this is 1.50 - 1.10 = 0.40 Angstrom)
-      self.lval=max(adjlist)+0.40
+      B5 = max(opplist)
+      self.lval = max(adjlist) + 0.40
 
+      # 以下後面程式維持原樣，使用新的atomlist計算...
+
+      # 你可以繼續把剩餘程式裡涉及atomlist的地方，都使用排除過的atomlist來計算
+      # 
       ###Useful - do not delete!
       #print "   B5 atom", atomlist[opplist.index(max(opplist))]+1, "distance", max(opplist)
       #print "   Highest atom", atomlist[adjlist.index(max(adjlist))]+1,"distance", max(adjlist),"\n   Lowest atom", atomlist[minadjlist.index(min(minadjlist))]+1,"distance", min(minadjlist)
