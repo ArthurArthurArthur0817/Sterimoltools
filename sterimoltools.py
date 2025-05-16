@@ -427,6 +427,7 @@ class calcSterimol:
       # 排除指定的原子
       for ex in excludes:
           if ex in atomlist:
+	      print(type(ex))
               atomlist.remove(ex)
 
       if verbose:
@@ -436,8 +437,10 @@ class calcSterimol:
              for coord in molcart[atom]:
                 if coord < 0.0: 
                     print("   %.3f".rjust(6) % coord, end=' ')
+		    print("testB")
                 else: 
                     print("    %.3f".rjust(6) % coord, end=' ')
+		    print("testA")
              print("    %.1f" % round(vdw_radii[atom]*100))
 
       adjlist = []
