@@ -410,7 +410,7 @@ class calcSterimol:
       for ex in [exclude1, exclude2, exclude3]:
           if ex is not None:
               excludes.append(ex - 1)
-      # print("Exclude atoms (0-based):", excludes)
+          print("Exclude atoms (0-based):", excludes)
 
       next_atom = molcart[atomB]
       vect1 = np.subtract(getcoords(atomA, molcart), next_atom)
@@ -427,21 +427,22 @@ class calcSterimol:
       # 排除指定的原子
       for ex in excludes:
           if ex in atomlist:
-	      print(type(ex))
               atomlist.remove(ex)
 
       if verbose:
           for atom in range(natoms):
              if radii == "cpk": print("  ", sterimol_types[atom].ljust(6), end=' ')
              if radii == "bondi": print("  ", atomtype[atom].ljust(6), end=' ')
+	     print("testA")
              for coord in molcart[atom]:
                 if coord < 0.0: 
                     print("   %.3f".rjust(6) % coord, end=' ')
 		    print("testB")
                 else: 
                     print("    %.3f".rjust(6) % coord, end=' ')
-		    print("testA")
+		    print("testC")
              print("    %.1f" % round(vdw_radii[atom]*100))
+             print("testA")
 
       adjlist = []
       opplist = []
